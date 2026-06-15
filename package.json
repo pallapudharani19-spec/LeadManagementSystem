@@ -1,7 +1,7 @@
 {
   "name": "leadmanagmentsystem",
   "version": "1.0.0",
-  "description": "",
+  "description": "The Lead Management System is a full-stack web application developed to manage customer leads efficiently. It enables users to add, view, update, and delete lead information through a simple and user-friendly interface.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,5 +15,13 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "pg": "^8.21.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pallapudharani19-spec/LeadManagmentSystem.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pallapudharani19-spec/LeadManagmentSystem/issues"
+  },
+  "homepage": "https://github.com/pallapudharani19-spec/LeadManagmentSystem#readme"
 }
