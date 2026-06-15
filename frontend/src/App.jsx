@@ -11,7 +11,7 @@ function App() {
   // Fetch leads
   const fetchLeads = async () => {
     try {
-      const res = await fetch(`${API}/api/leads`);
+      const res = await fetch(`${API}/leads`);
       const data = await res.json();
       setLeads(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -29,7 +29,7 @@ function App() {
     if (!name || !phone) return alert("Enter name and phone");
 
     try {
-      await fetch(`${API}/api/leads`, {
+      await fetch(`${API}/leads`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -52,7 +52,7 @@ function App() {
   // Delete lead
   const deleteLead = async (id) => {
     try {
-      await fetch(`${API}/api/leads/${id}`, {
+      await fetch(`${API}/leads/${id}`, {
         method: "DELETE",
       });
       fetchLeads();
@@ -64,7 +64,7 @@ function App() {
   // Update status
   const updateStatus = async (id, status) => {
     try {
-      await fetch(`${API}/api/leads/${id}`, {
+      await fetch(`${API}/leads/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
