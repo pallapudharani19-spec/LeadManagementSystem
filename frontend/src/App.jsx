@@ -8,14 +8,17 @@ function App() {
   const [phone, setPhone] = useState("");
   const [source, setSource] = useState("Call");
 
-  // Fetch leads
+  // FETCH LEADS
   const fetchLeads = async () => {
     try {
       const res = await fetch(`${API}/leads`);
+
+      if (!res.ok) throw new Error("Failed to fetch leads");
+
       const data = await res.json();
       setLeads(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.log("Fetch error:", err);
+      console.log("Fetch error:", err.message);
       setLeads([]);
     }
   };
@@ -24,7 +27,7 @@ function App() {
     fetchLeads();
   }, []);
 
-  // Add lead
+  // ADD LEAD
   const addLead = async () => {
     if (!name || !phone) {
       alert("Enter name and phone");
@@ -45,6 +48,8 @@ function App() {
         }),
       });
 
+      if (!res.ok) throw new Error("Failed to add lead");
+
       const data = await res.json();
       console.log("Added:", data);
 
@@ -52,37 +57,45 @@ function App() {
       setPhone("");
       setSource("Call");
 
-      fetchLeads(); // refresh list
-    } catch (err) {
-      console.log("Add error:", err);
-    }
-  };
-
-  // Delete lead
-  const deleteLead = async (id) => {
-    try {
-      await fetch(`${API}/leads/${id}`, {
-        method: "DELETE",
-      });
       fetchLeads();
     } catch (err) {
-      console.log("Delete error:", err);
+      console.log("Add error:", err.message);
     }
   };
 
-  // Update status
+  // DELETE LEAD
+  const deleteLead = async (id) => {
+    try {
+      const res = await fetch(`${API}/leads/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Delete failed");
+
+      fetchLeads();
+    } catch (err) {
+      console.log("Delete error:", err.message);
+    }
+  };
+
+  // UPDATE STATUS (FIXED PROPERLY)
   const updateStatus = async (id, status) => {
     try {
-      await fetch(`${API}/leads/${id}`, {
+      const res = await fetch(`${API}/leads/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({
+          status,
+        }),
       });
+
+      if (!res.ok) throw new Error("Update failed");
+
       fetchLeads();
     } catch (err) {
-      console.log("Update error:", err);
+      console.log("Update error:", err.message);
     }
   };
 
@@ -90,7 +103,7 @@ function App() {
     <div style={{ width: "400px", margin: "20px auto", fontFamily: "Arial" }}>
       <h2>Lead Management System</h2>
 
-      {/* Form */}
+      {/* FORM */}
       <input
         placeholder="Name"
         value={name}
@@ -121,7 +134,7 @@ function App() {
 
       <hr />
 
-      {/* Leads */}
+      {/* LEADS LIST */}
       {leads.length === 0 ? (
         <p>No leads found</p>
       ) : (
