@@ -30,25 +30,37 @@ app.get("/leads", async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error("GET ERROR:", err);
     res.status(500).json({ error: "Database Error" });
   }
 });
 
-// ADD lead
+// ADD lead (🔥 FIXED)
 app.post("/leads", async (req, res) => {
   try {
+    console.log("Incoming Data:", req.body); // DEBUG
+
     const { name, phone, source, status } = req.body;
+
+    // validation
+    if (!name || !phone) {
+      return res.status(400).json({ error: "Name and phone required" });
+    }
 
     const result = await pool.query(
       "INSERT INTO leads(name, phone, source, status) VALUES($1,$2,$3,$4) RETURNING *",
-      [name, phone, source, status]
+      [
+        name,
+        phone,
+        source || "Call",
+        status || "Interested",
+      ]
     );
 
-    res.json(result.rows[0]);
+    res.status(200).json(result.rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Database Error" });
+    console.error("POST ERROR:", err); // VERY IMPORTANT
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -72,7 +84,7 @@ app.put("/leads/:id", async (req, res) => {
 
     res.json({ message: "Lead updated successfully" });
   } catch (err) {
-    console.error(err);
+    console.error("UPDATE ERROR:", err);
     res.status(500).json({ error: "Database Error" });
   }
 });
@@ -89,13 +101,12 @@ app.delete("/leads/:id", async (req, res) => {
 
     res.json({ message: "Lead deleted successfully" });
   } catch (err) {
-    console.error(err);
+    console.error("DELETE ERROR:", err);
     res.status(500).json({ error: "Database Error" });
   }
 });
 
-// Start Server
-const PORT = process.env.PORT || 5000;
+// CREATE TABLE (keep this)
 app.get("/create-table", async (req, res) => {
   try {
     await pool.query(`
@@ -115,6 +126,9 @@ app.get("/create-table", async (req, res) => {
   }
 });
 
+// Start Server
+const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+  console.log(✅ Server running on port ${PORT});
 });
