@@ -1,3 +1,4 @@
+reuire("dotenv").config
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
@@ -10,13 +11,11 @@ app.use(express.json());
 
 // PostgreSQL connection
 const pool = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "lead_management",
-  password: "pinky",
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
-
 // ✅ GET all leads
 app.get("/leads", async (req, res) => {
   try {
