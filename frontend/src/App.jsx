@@ -26,12 +26,17 @@ function App() {
 
   // Add lead
   const addLead = async () => {
-    if (!name || !phone) return alert("Enter name and phone");
+    if (!name || !phone) {
+      alert("Enter name and phone");
+      return;
+    }
 
     try {
-      await fetch(`${API}/leads`, {
+      const res = await fetch(`${API}/leads`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           name,
           phone,
@@ -40,12 +45,16 @@ function App() {
         }),
       });
 
+      const data = await res.json();
+      console.log("Added:", data);
+
       setName("");
       setPhone("");
       setSource("Call");
-      fetchLeads();
+
+      fetchLeads(); // refresh list
     } catch (err) {
-      console.log(err);
+      console.log("Add error:", err);
     }
   };
 
@@ -57,7 +66,7 @@ function App() {
       });
       fetchLeads();
     } catch (err) {
-      console.log(err);
+      console.log("Delete error:", err);
     }
   };
 
@@ -66,12 +75,14 @@ function App() {
     try {
       await fetch(`${API}/leads/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ status }),
       });
       fetchLeads();
     } catch (err) {
-      console.log(err);
+      console.log("Update error:", err);
     }
   };
 
@@ -114,9 +125,9 @@ function App() {
       {leads.length === 0 ? (
         <p>No leads found</p>
       ) : (
-        leads.map((lead, i) => (
+        leads.map((lead) => (
           <div
-            key={i}
+            key={lead.id}
             style={{
               border: "1px solid #ccc",
               margin: "10px 0",
