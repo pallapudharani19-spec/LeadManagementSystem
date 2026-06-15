@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const API = "https://leadmanagementsystem-dv3s.onrender.com";
+const API = "https://leadmanagementsystem-wpdy.onrender.com";
 
 function App() {
   const [leads, setLeads] = useState([]);
