@@ -6,7 +6,7 @@ const { Pool } = require("pg");
 
 const app = express();
 
-// ✅ CORS FIX (important for Vercel frontend)
+// -------------------- MIDDLEWARE --------------------
 app.use(
   cors({
     origin: "*",
@@ -16,26 +16,34 @@ app.use(
 
 app.use(express.json());
 
-// ✅ DB CONNECTION (Neon safe config)
+// -------------------- DATABASE (NEON SAFE) --------------------
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    require: true,
     rejectUnauthorized: false,
   },
 });
 
-// ✅ TEST DB CONNECTION ON START
-pool.connect()
-  .then(() => console.log("✅ Database connected successfully"))
-  .catch((err) => console.error("❌ DB connection error:", err.message));
+// -------------------- OPTIONAL DB TEST --------------------
+app.get("/db-test", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT NOW()");
+    res.json({
+      message: "DB connected",
+      time: result.rows[0],
+    });
+  } catch (err) {
+    console.error("DB TEST ERROR:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 
-// HOME ROUTE
+// -------------------- HOME --------------------
 app.get("/", (req, res) => {
   res.send("Lead Management Backend is Running!");
 });
 
-// GET ALL LEADS
+// -------------------- GET LEADS --------------------
 app.get("/leads", async (req, res) => {
   try {
     const result = await pool.query(
@@ -48,14 +56,13 @@ app.get("/leads", async (req, res) => {
   }
 });
 
-// ADD LEAD (FIXED + DEBUGGED)
+// -------------------- ADD LEAD --------------------
 app.post("/leads", async (req, res) => {
   try {
-    console.log("📩 Incoming Data:", req.body);
+    console.log("Incoming Data:", req.body);
 
     const { name, phone, source, status } = req.body;
 
-    // strict validation
     if (!name || !phone) {
       return res.status(400).json({
         error: "Name and phone are required",
@@ -66,27 +73,20 @@ app.post("/leads", async (req, res) => {
       `INSERT INTO leads (name, phone, source, status)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [
-        name,
-        phone,
-        source ?? "Call",
-        status ?? "Interested",
-      ]
+      [name, phone, source || "Call", status || "Interested"]
     );
 
-    console.log("✅ Inserted Row:", result.rows[0]);
-
-    return res.status(201).json({
+    res.status(201).json({
       message: "Lead added successfully",
       data: result.rows[0],
     });
   } catch (err) {
-    console.error("❌ POST ERROR:", err.message);
+    console.error("POST ERROR:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// UPDATE LEAD
+// -------------------- UPDATE LEAD --------------------
 app.put("/leads/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -110,7 +110,7 @@ app.put("/leads/:id", async (req, res) => {
   }
 });
 
-// DELETE LEAD
+// -------------------- DELETE LEAD --------------------
 app.delete("/leads/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -124,7 +124,7 @@ app.delete("/leads/:id", async (req, res) => {
   }
 });
 
-// CREATE TABLE
+// -------------------- CREATE TABLE --------------------
 app.get("/create-table", async (req, res) => {
   try {
     await pool.query(`
@@ -139,14 +139,14 @@ app.get("/create-table", async (req, res) => {
 
     res.send("Table created successfully");
   } catch (err) {
-    console.error(err.message);
+    console.error("TABLE ERROR:", err.message);
     res.status(500).send("Error creating table");
   }
 });
 
-// START SERVER
+// -------------------- START SERVER --------------------
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
