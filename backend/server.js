@@ -6,7 +6,7 @@ const { Pool } = require("pg");
 
 const app = express();
 
-// -------------------- MIDDLEWARE --------------------
+// ---------------- CORS ----------------
 app.use(
   cors({
     origin: "*",
@@ -14,36 +14,40 @@ app.use(
   })
 );
 
+// ---------------- JSON ----------------
 app.use(express.json());
 
-// -------------------- DATABASE (NEON SAFE) --------------------
+// ---------------- SAFETY HANDLERS (IMPORTANT) ----------------
+process.on("uncaughtException", (err) => {
+  console.error("❌ Uncaught Exception:", err.message);
+});
+
+process.on("unhandledRejection", (err) => {
+  console.error("❌ Unhandled Rejection:", err);
+});
+
+// ---------------- DATABASE (NEON SAFE) ----------------
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false,
   },
+  max: 2,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 10000,
 });
 
-// -------------------- OPTIONAL DB TEST --------------------
-app.get("/db-test", async (req, res) => {
-  try {
-    const result = await pool.query("SELECT NOW()");
-    res.json({
-      message: "DB connected",
-      time: result.rows[0],
-    });
-  } catch (err) {
-    console.error("DB TEST ERROR:", err.message);
-    res.status(500).json({ error: err.message });
-  }
+// Prevent crash from pg errors
+pool.on("error", (err) => {
+  console.error("❌ Unexpected PG error:", err.message);
 });
 
-// -------------------- HOME --------------------
+// ---------------- HOME ----------------
 app.get("/", (req, res) => {
   res.send("Lead Management Backend is Running!");
 });
 
-// -------------------- GET LEADS --------------------
+// ---------------- GET LEADS ----------------
 app.get("/leads", async (req, res) => {
   try {
     const result = await pool.query(
@@ -56,11 +60,9 @@ app.get("/leads", async (req, res) => {
   }
 });
 
-// -------------------- ADD LEAD --------------------
+// ---------------- ADD LEAD ----------------
 app.post("/leads", async (req, res) => {
   try {
-    console.log("Incoming Data:", req.body);
-
     const { name, phone, source, status } = req.body;
 
     if (!name || !phone) {
@@ -82,11 +84,11 @@ app.post("/leads", async (req, res) => {
     });
   } catch (err) {
     console.error("POST ERROR:", err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Insert failed" });
   }
 });
 
-// -------------------- UPDATE LEAD --------------------
+// ---------------- UPDATE LEAD ----------------
 app.put("/leads/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -110,7 +112,7 @@ app.put("/leads/:id", async (req, res) => {
   }
 });
 
-// -------------------- DELETE LEAD --------------------
+// ---------------- DELETE LEAD ----------------
 app.delete("/leads/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -124,7 +126,7 @@ app.delete("/leads/:id", async (req, res) => {
   }
 });
 
-// -------------------- CREATE TABLE --------------------
+// ---------------- CREATE TABLE ----------------
 app.get("/create-table", async (req, res) => {
   try {
     await pool.query(`
@@ -144,7 +146,7 @@ app.get("/create-table", async (req, res) => {
   }
 });
 
-// -------------------- START SERVER --------------------
+// ---------------- START SERVER ----------------
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
