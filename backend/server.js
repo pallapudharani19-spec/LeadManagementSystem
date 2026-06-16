@@ -48,7 +48,7 @@ app.get("/", (req, res) => {
 });
 
 // ---------------- GET LEADS ----------------
-app.get("/db-test", async (req, res) => {
+app.get("leads", async (req, res) => {
   try {
     const result = await pool.query(
       "SELECT * FROM leads ORDER BY id ASC"
